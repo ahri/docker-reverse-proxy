@@ -1,0 +1,21 @@
+{
+  "newcap": false,
+
+  "globalstrict": true,
+  "globals": {
+    "console": false,
+    "require": false,
+    "module": false,
+    "setTimeout": false,
+    "process": false,
+    "__filename": false,
+    "__dirname": false,
+
+    "describe": false,
+    "before": false,
+    "after": false,
+    "beforeEach": false,
+    "afterEach": false,
+    "it": false
+  }
+}

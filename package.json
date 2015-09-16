@@ -1,0 +1,12 @@
+{
+  "name": "docker-reverse-proxy",
+  "version": "0.0.1",
+  "private": true,
+  "main": "reverse-proxy.js",
+  "scripts": {
+    "start": "node reverse-proxy.js"
+  },
+  "dependencies": {
+    "http-proxy": "^1.11.2"
+  }
+}
