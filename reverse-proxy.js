@@ -76,7 +76,4 @@ var server = http.createServer(function(req, res) {
   proxy.web(req, res, { target: parsed.target });
 });
 
-server.listen(80, function downgradePrivileges() {
-  process.setgid('nogroup');
-  process.setuid('nobody');
-});
+server.listen(8080);
