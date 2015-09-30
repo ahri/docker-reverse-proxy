@@ -3,38 +3,39 @@
 var http = require('http'),
     httpProxy = require('http-proxy');
 
-var keyMatcher = /^([A-Z][A-Z-\.]*[A-Z])_PORT$/,
-    valMatcher = /^tcp:\/\/(\d+\.\d+\.\d+\.\d+:80)$/;
+var KEY_MATCHER = /^(\d+)_([A-Z][A-Z-\.]*[A-Z])_NAME/;
 
-function matchDomain(key) {
-  var match = key.match(keyMatcher);
+function Parse(envVar) {
+  var match = envVar.match(KEY_MATCHER);
 
-  if (!match) return;
+  if (!match) return null;
 
-  return match[1].toLowerCase();
-}
+  var val = {
+    port: match[1],
+    host: match[2].toLowerCase(),
+  };
 
-function matchTarget(val) {
-  var match = val.match(valMatcher);
+  val.target = 'http://' + val.port + '_' + val.host + ':' + val.port;
 
-  if (!match) return;
-
-  return match[1];
+  return Object.freeze(val);
 }
 
 function Router() {
   var mapping = {};
 
   for (var key in process.env) {
-    var domain = matchDomain(key);
-    if (!domain) continue;
+    var parsed = Parse(key);
 
-    var target = matchTarget(process.env[key]);
-    if (!target) continue;
+    if (!parsed) continue;
 
-    mapping[domain] = target;
+    if (parsed.host in mapping) {
+      console.error("Duplicate mapping for host " + parsed.host);
+      process.exit(1);
+    }
 
-    console.log("Proxying for " + domain);
+    mapping[parsed.host] = parsed;
+
+    console.log("Proxying " + parsed.host + " to " + parsed.target);
   }
 
   return function targetFor(domain) {
@@ -64,15 +65,15 @@ var server = http.createServer(function(req, res) {
     return res.end();
   }
 
-  var target = router(host);
+  var parsed = router(host);
 
-  if (target === undefined) {
+  if (parsed === undefined) {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.write('Unknown host');
     return res.end();
   }
 
-  proxy.web(req, res, { target: 'http://' + target });
+  proxy.web(req, res, { target: parsed.target });
 });
 
 server.listen(80, function downgradePrivileges() {
